@@ -1,5 +1,8 @@
 //! The module that handles hashing for the object database
 
+mod sha512;
+pub use sha512::{Sha512Hash, Sha512Instance};
+
 /// A method that can be used to provide the underlying
 /// hashing functionality for the object database
 pub trait HashMethod<const S: usize> {
