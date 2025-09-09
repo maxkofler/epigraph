@@ -2,7 +2,7 @@
 
 use sha2::{Digest, Sha512};
 
-use crate::hash::{HashMethod, HashMethodInstance};
+use crate::hash::{HashDigest, HashMethod, HashMethodInstance};
 
 const SIZE: usize = 64;
 const ID: u8 = 0x28;
@@ -33,7 +33,7 @@ impl HashMethodInstance<SIZE> for Sha512Instance {
         self.hash.update(data);
     }
 
-    fn finalize(self) -> [u8; SIZE] {
-        self.hash.finalize().into()
+    fn finalize(self) -> HashDigest<SIZE> {
+        HashDigest::new(self.hash.finalize().into())
     }
 }

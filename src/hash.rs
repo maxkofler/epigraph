@@ -30,7 +30,7 @@ pub trait HashMethod<const S: usize> {
     /// * `src` - The stream to hash
     /// # Returns
     /// The calculated digest of the stream contents
-    fn hash_stream<R: Read>(&self, src: &mut R) -> Result<[u8; S], io::Error> {
+    fn hash_stream<R: Read>(&self, src: &mut R) -> Result<HashDigest<S>, io::Error> {
         let mut inst = self.instantiate();
 
         inst.hash_stream(src)?;
@@ -49,7 +49,7 @@ pub trait HashMethod<const S: usize> {
         &self,
         src: &mut R,
         dst: Option<&mut W>,
-    ) -> Result<[u8; S], io::Error> {
+    ) -> Result<HashDigest<S>, io::Error> {
         let mut inst = self.instantiate();
 
         inst.hash_stream_passthrough(src, dst)?;
@@ -66,7 +66,7 @@ pub trait HashMethodInstance<const S: usize> {
     fn update(&mut self, data: &[u8]);
 
     /// Finalize the
-    fn finalize(self) -> [u8; S];
+    fn finalize(self) -> HashDigest<S>;
 
     /// Returns the size of the resulting digest
     fn digest_size() -> usize {
@@ -127,5 +127,24 @@ pub trait HashMethodInstance<const S: usize> {
         }
 
         Ok(stream_len)
+    }
+}
+
+/// The result from a hash calculation
+pub struct HashDigest<const S: usize> {
+    data: [u8; S],
+}
+
+impl<const S: usize> HashDigest<S> {
+    /// Create a new instance of a hash digest
+    /// # Arguments
+    /// * `data` - The underlying data of the calculation
+    pub fn new(data: [u8; S]) -> Self {
+        Self { data }
+    }
+
+    /// Returns a hex string representation of this digest
+    pub fn to_hex(&self) -> String {
+        hex::encode(self.data)
     }
 }
