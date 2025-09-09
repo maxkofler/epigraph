@@ -1,6 +1,9 @@
 //! The module that handles hashing for the object database
 
-use std::io::{self, Read, Write};
+use std::{
+    io::{self, Read, Write},
+    path::PathBuf,
+};
 
 pub mod sha512;
 
@@ -146,5 +149,31 @@ impl<const S: usize> HashDigest<S> {
     /// Returns a hex string representation of this digest
     pub fn to_hex(&self) -> String {
         hex::encode(self.data)
+    }
+
+    /// Convert this digest into a path with a certain depth:
+    /// - depth = 0 -> `abcd...`
+    /// - depth = 1 -> `ab/cd...`
+    /// # Arguments
+    /// * `depth` - The depth of the path to create
+    /// # Returns
+    /// A relative path for this digest
+    pub fn to_path(&self, depth: usize) -> PathBuf {
+        // Cap the depth at the maximum for the digest size
+        let depth = if depth < S - 1 { depth } else { S - 1 };
+
+        let mut path = PathBuf::new();
+        let string = self.to_hex();
+        let mut str_ref = string.as_str();
+
+        for _ in 0..depth {
+            let dir = &str_ref[0..2];
+            path.push(dir);
+            str_ref = &str_ref[2..];
+        }
+
+        path.push(str_ref);
+
+        path
     }
 }
